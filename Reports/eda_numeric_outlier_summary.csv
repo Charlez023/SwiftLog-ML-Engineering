@@ -1,0 +1,6 @@
+Dataset,Column,Non_Missing_Values,Outlier_Count_IQR,Outlier_Percent,Median,Q1,Q3
+SwiftLog_Delivery_Performance,DelayDays,5000,0,0.0,4.0,2.0,6.0
+SwiftLog_Inventory,Stock,4000,0,0.0,253.0,131.0,373.0
+SwiftLog_Order_Items,Quantity,15000,0,0.0,6.0,3.0,8.0
+SwiftLog_Products,UnitPrice,250,0,0.0,263.565,143.98000000000002,391.62
+SwiftLog_Shipments,DelayDays,5000,0,0.0,4.0,2.0,6.0

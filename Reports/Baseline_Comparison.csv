@@ -1,0 +1,5 @@
+Problem,Baseline,Test_Rows,Accuracy,Precision,Recall,F1,MAE,RMSE,R2
+Delivery Delay Classification,Training-set majority class,1000,0.878,0.878,1.0,0.9350372736954207,,,
+Product Return Classification,Training-set majority class,1000,0.905,0.0,0.0,0.0,,,
+Product Demand Forecasting,Training-period mean,1750,,,,,6.545176967032967,8.05440576222645,-0.008120387437863252
+Customer Value Prediction (Next Month),Training-period mean,2000,,,,,2987.0884420324996,3747.890532535527,-0.06342814231727201
