@@ -1,0 +1,10 @@
+pandas
+numpy
+scikit-learn==1.8.0
+joblib
+streamlit
+openpyxl
+matplotlib
+reportlab
+python-pptx
+nbformat

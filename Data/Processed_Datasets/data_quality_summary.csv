@@ -1,0 +1,12 @@
+Dataset,Rows,Columns,Duplicate rows,Missing cells,Missing columns
+Customers,1000,3,0,0,
+Delivery_Performance,5000,3,0,0,
+Employees,200,2,0,0,
+Inventory,4000,3,3,0,
+Orders,5000,4,0,0,
+Order_Items,15000,4,0,0,
+Products,250,3,0,0,
+Returns,500,3,0,0,
+Shipments,5000,4,0,0,
+Suppliers,150,2,0,0,
+Warehouses,15,2,0,0,

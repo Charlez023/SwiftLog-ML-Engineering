@@ -1,0 +1,33 @@
+Problem,Feature,Importance
+Delivery Delay Classification,WarehouseID,-0.014128924314513902
+Delivery Delay Classification,Location,-0.006727967495513187
+Delivery Delay Classification,City,0.0005441262724206197
+Delivery Delay Classification,OrderDate_Year,0.0
+Delivery Delay Classification,OrderDate_Month,-0.0001738669036989715
+Delivery Delay Classification,OrderDate_Day,0.002865115842045629
+Delivery Delay Classification,OrderDate_Weekday,-0.006880874407634852
+Product Return Classification,City,-0.0019740004025638053
+Product Return Classification,OrderDate_Year,0.0
+Product Return Classification,OrderDate_Month,0.009621907948220348
+Product Return Classification,OrderDate_Day,-0.0002682067715018832
+Product Return Classification,OrderDate_Weekday,0.01582576855766439
+Product Return Classification,ItemCount,0.011117399719319965
+Product Return Classification,TotalQuantity,0.011272861616708166
+Product Return Classification,DistinctProducts,0.016122450609829975
+Product Return Classification,TotalRevenue,0.005540260229337263
+Product Return Classification,MeanUnitPrice,0.009326877443887036
+Product Demand Forecasting,ProductID,-0.022327472630801815
+Product Demand Forecasting,Category,-0.00032970240552954166
+Product Demand Forecasting,UnitPrice,-0.0010809066059849215
+Product Demand Forecasting,Year,0.0
+Product Demand Forecasting,Month,0.0
+Product Demand Forecasting,DayOfWeek,0.0
+Product Demand Forecasting,Lag_1_Week,0.01470582579057389
+Product Demand Forecasting,Lag_4_Weeks,-0.000912622148409703
+Product Demand Forecasting,Rolling_Mean_4_Weeks,0.0023253898266251127
+Customer Value Prediction (Next Month),City,1.323407900559232
+Customer Value Prediction (Next Month),Previous_3M_Revenue,-10.673350001161907
+Customer Value Prediction (Next Month),Previous_3M_Order_Count,-5.529904498082715
+Customer Value Prediction (Next Month),Previous_3M_Quantity,-5.748595354860754
+Customer Value Prediction (Next Month),Previous_3M_Item_Count,91.69241349242611
+Customer Value Prediction (Next Month),Previous_3M_Avg_Unit_Price,-1.5333785691939283
