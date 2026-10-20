@@ -1,4 +1,4 @@
-Dataset,Rows,Columns,Duplicate rows,Missing cells,Missing columns
+Dataset,Rows_Before_Deduplication,Columns,Duplicate_Rows,Missing_Cells,Columns_With_Missing_Values
 Customers,1000,3,0,0,
 Delivery_Performance,5000,3,0,0,
 Employees,200,2,0,0,

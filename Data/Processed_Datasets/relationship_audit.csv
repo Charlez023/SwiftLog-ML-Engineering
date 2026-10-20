@@ -1,0 +1,8 @@
+Table,Relationship,Finding
+Shipments,OrderID -> Orders.OrderID,Join supported by supplied keys
+Shipments,WarehouseID -> Warehouses.WarehouseID,Join supported; location only if supplied
+Delivery_Performance,ShipmentID -> Shipments.ShipmentID,Potential outcome cross-check; status excluded from predictors
+Inventory,WarehouseID/ProductID -> Warehouses/Products,Keys exist; repeated pairs are not assumed to be time history
+Employees,WarehouseID -> Warehouses.WarehouseID,Warehouse association supported by schema
+Suppliers,SupplierID -> other tables,No confirmed matching supplier key in inspected schemas
+Warehouses,Capacity,Unavailable; supplied table has no capacity field

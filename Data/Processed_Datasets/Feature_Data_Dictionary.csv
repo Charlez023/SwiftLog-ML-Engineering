@@ -1,13 +1,13 @@
-Field,Task,Definition,Business meaning
-Target_Delayed,Delivery Delay Classification,1 when DelayDays > 0; otherwise 0.,Historical delay label; DelayDays itself is excluded from model inputs.
-Target_Returned,Product Return Classification,1 when OrderID appears in Returns; otherwise 0.,Historical recorded-return label.
-Lag_1_Week,Product Demand Forecasting,Product quantity in the previous week.,Recent demand signal available before the prediction date.
-Lag_4_Weeks,Product Demand Forecasting,Product quantity four weeks before the prediction week.,Weekly demand signal available before the prediction date.
-Rolling_Mean_4_Weeks,Product Demand Forecasting,"Mean weekly product demand over the preceding four weeks, excluding the prediction week.",Recent baseline demand; calculated without using the target day.
-Previous_3M_Revenue,Customer Value Prediction (Next Month),Customer revenue summed over the three months before the target month.,Prior spending history used to estimate next-month revenue.
-Previous_3M_Order_Count,Customer Value Prediction (Next Month),Customer order count over the three months before the target month.,Recent purchasing frequency.
-Previous_3M_Quantity,Customer Value Prediction (Next Month),Customer item quantity over the three months before the target month.,Recent purchase volume.
-Previous_3M_Item_Count,Customer Value Prediction (Next Month),Number of order-item records over the three months before the target month.,Recent breadth of purchasing activity.
-Previous_3M_Avg_Unit_Price,Customer Value Prediction (Next Month),Mean unit price observed in the preceding three months.,Recent price level of purchased products.
-DemandQuantity,Product Demand Forecasting,Total units purchased for a product in a week; zero when no purchase was recorded.,Weekly demand target.
-MonthRevenue,Customer Value Prediction (Next Month),Customer item revenue in the target month.,Next-month revenue target.
+Field,Task,Definition
+Target_Delayed,Delivery Delay Classification,1 when DelayDays > 0; otherwise 0. DelayDays is excluded from predictors.
+Target_Returned,Product Return Classification,1 when OrderID appears in Returns; otherwise 0.
+Lag_1_Week,Product Demand Forecasting,Product quantity in the preceding week.
+Lag_4_Weeks,Product Demand Forecasting,Product quantity four weeks before the target week.
+Rolling_Mean_4_Weeks,Product Demand Forecasting,"Mean demand in the four preceding weeks, excluding target week."
+Previous_3M_Revenue,Customer Value Prediction (Next Month),Customer revenue over the three months preceding target month.
+Previous_3M_Order_Count,Customer Value Prediction (Next Month),Customer order count over the three months preceding target month.
+Previous_3M_Quantity,Customer Value Prediction (Next Month),Customer quantity over the three months preceding target month.
+Previous_3M_Item_Count,Customer Value Prediction (Next Month),Order-item records over the three months preceding target month.
+Previous_3M_Avg_Unit_Price,Customer Value Prediction (Next Month),Mean unit price in prior months; can be missing if no prior purchases.
+DemandQuantity,Product Demand Forecasting,Recorded units for a product-week; zero means no purchase was recorded.
+MonthRevenue,Customer Value Prediction (Next Month),Customer item revenue in target month.
