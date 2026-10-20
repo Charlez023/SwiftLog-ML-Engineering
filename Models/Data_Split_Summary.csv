@@ -1,0 +1,5 @@
+Problem,Rows,Train_Rows,Validation_Rows,Test_Rows,Train_Percent,Validation_Percent,Test_Percent,Split_Method,Train_Date_Start,Train_Date_End,Validation_Date_Start,Validation_Date_End,Test_Date_Start,Test_Date_End
+Delivery Delay Classification,5000,3000,1000,1000,60.0,20.0,20.0,Random 60/20/20; stratified where possible,,,,,,
+Product Return Classification,5000,3000,1000,1000,60.0,20.0,20.0,Random 60/20/20; stratified where possible,,,,,,
+Product Demand Forecasting,8250,4750,1750,1750,57.58,21.21,21.21,Chronological by unique date,2026-01-26,2026-06-01,2026-06-08,2026-07-20,2026-07-27,2026-09-07
+Customer Value Prediction (Next Month),6000,3000,1000,2000,50.0,16.67,33.33,Chronological by unique date,2026-04-01,2026-06-01,2026-07-01,2026-07-01,2026-08-01,2026-09-01

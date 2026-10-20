@@ -1,33 +1,33 @@
 Problem,Feature,Importance
-Delivery Delay Classification,WarehouseID,-0.011248325499693568
-Delivery Delay Classification,Location,-0.012202673315148571
-Delivery Delay Classification,City,-0.0022940354396246976
+Delivery Delay Classification,WarehouseID,-0.008710964551540227
+Delivery Delay Classification,Location,-0.010591162504250703
+Delivery Delay Classification,City,0.00033661575657417675
 Delivery Delay Classification,OrderDate_Year,0.0
-Delivery Delay Classification,OrderDate_Month,0.002152468603878299
-Delivery Delay Classification,OrderDate_Day,0.0002657529156586125
-Delivery Delay Classification,OrderDate_Weekday,-0.008903979847494137
-Product Return Classification,City,-0.009228033832039254
+Delivery Delay Classification,OrderDate_Month,-0.00541670208675545
+Delivery Delay Classification,OrderDate_Day,-0.007208297295962729
+Delivery Delay Classification,OrderDate_Weekday,-0.007837292524585945
+Product Return Classification,City,-0.00445127858895968
 Product Return Classification,OrderDate_Year,0.0
-Product Return Classification,OrderDate_Month,-0.011368639120551319
-Product Return Classification,OrderDate_Day,0.0020337239976104676
-Product Return Classification,OrderDate_Weekday,0.006076375418305274
-Product Return Classification,ItemCount,-0.0006535890754764684
-Product Return Classification,TotalQuantity,-0.008069478798558516
-Product Return Classification,DistinctProducts,-0.0018010776529936157
-Product Return Classification,TotalRevenue,-0.00532491968334034
-Product Return Classification,MeanUnitPrice,-0.008818829651723217
-Product Demand Forecasting,ProductID,-0.022327472630801815
-Product Demand Forecasting,Category,-0.00032970240552954166
-Product Demand Forecasting,UnitPrice,-0.0010809066059849215
+Product Return Classification,OrderDate_Month,-0.008181102065856852
+Product Return Classification,OrderDate_Day,0.006327631649671234
+Product Return Classification,OrderDate_Weekday,0.013083594603913349
+Product Return Classification,ItemCount,-0.0015765195612794842
+Product Return Classification,TotalQuantity,-0.008088013523141202
+Product Return Classification,DistinctProducts,-7.305135510263239e-05
+Product Return Classification,TotalRevenue,-0.004859980070756813
+Product Return Classification,MeanUnitPrice,-0.022229898130417213
+Product Demand Forecasting,ProductID,-0.0208539642649536
+Product Demand Forecasting,Category,-0.00040386179542621176
+Product Demand Forecasting,UnitPrice,-0.003500523392252338
 Product Demand Forecasting,Year,0.0
 Product Demand Forecasting,Month,0.0
 Product Demand Forecasting,DayOfWeek,0.0
-Product Demand Forecasting,Lag_1_Week,0.01470582579057389
-Product Demand Forecasting,Lag_4_Weeks,-0.000912622148409703
-Product Demand Forecasting,Rolling_Mean_4_Weeks,0.0023253898266251127
-Customer Value Prediction (Next Month),City,1.3234079005596868
-Customer Value Prediction (Next Month),Previous_3M_Revenue,-10.67335000116168
-Customer Value Prediction (Next Month),Previous_3M_Order_Count,-5.52990449808226
-Customer Value Prediction (Next Month),Previous_3M_Quantity,-5.748595354860299
-Customer Value Prediction (Next Month),Previous_3M_Item_Count,91.69241349242589
-Customer Value Prediction (Next Month),Previous_3M_Avg_Unit_Price,-1.5333785691934736
+Product Demand Forecasting,Lag_1_Week,0.004016202455527622
+Product Demand Forecasting,Lag_4_Weeks,0.0017290435963518054
+Product Demand Forecasting,Rolling_Mean_4_Weeks,0.002230856041986288
+Customer Value Prediction (Next Month),City,0.7991084131937592
+Customer Value Prediction (Next Month),Previous_3M_Revenue,-7.669730114808165
+Customer Value Prediction (Next Month),Previous_3M_Order_Count,-6.19188117815914
+Customer Value Prediction (Next Month),Previous_3M_Quantity,-4.935581797630827
+Customer Value Prediction (Next Month),Previous_3M_Item_Count,87.16580983821466
+Customer Value Prediction (Next Month),Previous_3M_Avg_Unit_Price,-1.0891123533210703

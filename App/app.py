@@ -2,48 +2,55 @@ import streamlit as st
 import pandas as pd
 import joblib
 from pathlib import Path
+
 st.set_page_config(page_title="SwiftLog ML Decision Support", page_icon="📦", layout="wide")
 st.title("SwiftLog Logistics: ML Decision Support")
-st.caption("Educational prototype based on the supplied Week 5 datasets. Predictions support review; they do not replace operational judgement.")
-MODEL_PATH=Path(__file__).resolve().parents[1]/"Models"/"Best_Model.pkl"
+st.caption("Educational prototype using supplied Week 5 datasets. Predictions support review, not operational decisions.")
+MODEL_PATH = Path(__file__).resolve().parents[1] / "Models" / "Best_Model.pkl"
+
 @st.cache_resource
-def load_models(): return joblib.load(MODEL_PATH)
-models=load_models()
-name=st.selectbox("Choose a prediction task",list(models.keys()))
-b=models[name]
-st.write("Selected model:", b["algorithm"])
-st.write("Held-out test metrics:", b["metrics"])
-if b["kind"] == "classification" and b["metrics"].get("ROC_AUC", 1) < 0.60:
-    st.warning("The ROC-AUC indicates weak separation between classes. Treat this output as an experimental signal, not a reliable operational decision.")
-if b["kind"] == "regression" and b["metrics"].get("R2", 0) < 0:
-    st.warning("The held-out R-squared is below zero, so this model performed worse than a simple test-set mean baseline. Use the estimate for demonstration only.")
-with st.form("predict"):
-    vals={}
-    cols=st.columns(2)
-    for i,c in enumerate(b["features"]):
-        with cols[i%2]:
-            default=b["defaults"].get(c,0)
-            if b["types"].get(c)=="numeric":
-                try: vals[c]=st.number_input(c,value=float(default))
-                except: vals[c]=0.0
+def load_models():
+    return joblib.load(MODEL_PATH)
+
+models = load_models()
+task = st.selectbox("Choose a prediction task", list(models.keys()))
+bundle = models[task]
+st.write("Selected model:", bundle["algorithm"])
+st.write("Held-out test metrics:", bundle["metrics"])
+st.caption(bundle.get("target_definition", ""))
+
+with st.form("prediction_form"):
+    values = {}
+    columns = st.columns(2)
+    for i, feature in enumerate(bundle["features"]):
+        with columns[i % 2]:
+            default = bundle["defaults"].get(feature, 0)
+            if bundle["types"].get(feature) == "numeric":
+                values[feature] = st.number_input(feature, value=float(default))
             else:
-                vals[c]=st.text_input(c,value=str(default))
-    submitted=st.form_submit_button("Generate prediction")
+                values[feature] = st.text_input(feature, value=str(default))
+    submitted = st.form_submit_button("Generate prediction")
+
 if submitted:
-    X=pd.DataFrame([vals],columns=b["features"])
-    model=b["model"]
-    pred=model.predict(X)[0]
-    if b["kind"]=="classification":
+    X = pd.DataFrame([values], columns=bundle["features"])
+    model = bundle["model"]
+    prediction = model.predict(X)[0]
+    if bundle["kind"] == "classification":
+        positive = "Delayed" if "Delivery Delay" in task else "Returned"
+        negative = "Not delayed" if "Delivery Delay" in task else "Not returned"
         st.subheader("Prediction")
-        positive_label = "Delayed" if "Delivery Delay" in name else "Returned"
-        negative_label = "Not delayed" if "Delivery Delay" in name else "Not returned"
-        st.success(positive_label if int(pred)==1 else negative_label)
-        if hasattr(model,"predict_proba"):
-            try: st.metric("Model probability for positive class",f"{model.predict_proba(X)[0][1]:.1%}")
-            except: pass
+        st.success(positive if int(prediction) == 1 else negative)
+        if hasattr(model, "predict_proba"):
+            try:
+                classes = list(model.named_steps["model"].classes_)
+                if 1 in classes:
+                    p = model.predict_proba(X)[0][classes.index(1)]
+                    st.metric("Estimated probability of positive class", f"{p:.1%}")
+            except (ValueError, IndexError, AttributeError):
+                pass
     else:
-        st.subheader("Estimated value")
-        metric_label = "Predicted weekly product demand (units)" if "Demand" in name else "Predicted next-month customer revenue"
-        st.metric(metric_label,f"{max(0.0, float(pred)):,.2f}")
+        label = "Predicted weekly product demand (units)" if "Demand" in task else "Predicted revenue for the target month"
+        st.metric(label, f"{max(0.0, float(prediction)):,.2f}")
+
 st.divider()
-st.caption("Model limitations: synthetic/limited fields, historical patterns may change, and predictions require validation before production use.")
+st.warning("Limitations: some relationships and business fields are absent; historical patterns can change; test scores may be weak. Validate independently before real operational use.")
