@@ -25,11 +25,13 @@ if app_path.exists():
     app = app.replace('page_icon="Ã°Å¸Å¡Åš"', 'page_icon="📦"')
     app = app.replace('Predicted daily product demand (units)', 'Predicted weekly product demand (units)')
     app = app.replace('st.title("SwiftLog Logistics: ML Decision Support")', 'st.title("SwiftLog Logistics: ML Decision Support")')
-    app = app.replace('st.write("Held-out test metrics:", b["metrics"])', '''st.write("Held-out test metrics:", b["metrics"])
-if b["kind"] == "classification" and b["metrics"].get("ROC_AUC", 1) < 0.60:
+    warning_block = '''if b["kind"] == "classification" and b["metrics"].get("ROC_AUC", 1) < 0.60:
     st.warning("The ROC-AUC indicates weak separation between classes. Treat this output as an experimental signal, not a reliable operational decision.")
 if b["kind"] == "regression" and b["metrics"].get("R2", 0) < 0:
-    st.warning("The held-out R-squared is below zero, so this model performed worse than a simple test-set mean baseline. Use the estimate for demonstration only.")''')
+    st.warning("The held-out R-squared is below zero, so this model performed worse than a simple test-set mean baseline. Use the estimate for demonstration only.")'''
+    metrics_line = 'st.write("Held-out test metrics:", b["metrics"])'
+    if warning_block not in app and metrics_line in app:
+        app = app.replace(metrics_line, metrics_line + "\n" + warning_block)
     app_path.write_text(app, encoding='utf-8')
 
 # Model comparison in a readable, stable order.
