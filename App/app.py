@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from pathlib import Path
-st.set_page_config(page_title="SwiftLog ML Decision Support", page_icon="Ã°Å¸Å¡Å¡", layout="wide")
+st.set_page_config(page_title="SwiftLog ML Decision Support", page_icon="📦", layout="wide")
 st.title("SwiftLog Logistics: ML Decision Support")
 st.caption("Educational prototype based on the supplied Week 5 datasets. Predictions support review; they do not replace operational judgement.")
 MODEL_PATH=Path(__file__).resolve().parents[1]/"Models"/"Best_Model.pkl"
@@ -12,11 +12,7 @@ models=load_models()
 name=st.selectbox("Choose a prediction task",list(models.keys()))
 b=models[name]
 st.write("Selected model:", b["algorithm"])
-st.json(b["metrics"])
-if b["kind"] == "classification" and b["metrics"].get("ROC_AUC", 1) < 0.60:
-    st.warning("The ROC-AUC indicates weak separation between classes. Treat this output as an experimental signal, not a reliable operational decision.")
-if b["kind"] == "regression" and b["metrics"].get("R2", 0) < 0:
-    st.warning("The held-out R-squared is below zero, so this model performed worse than a simple test-set mean baseline. Use the estimate for demonstration only.")
+st.write("Held-out test metrics:", b["metrics"])
 if b["kind"] == "classification" and b["metrics"].get("ROC_AUC", 1) < 0.60:
     st.warning("The ROC-AUC indicates weak separation between classes. Treat this output as an experimental signal, not a reliable operational decision.")
 if b["kind"] == "regression" and b["metrics"].get("R2", 0) < 0:

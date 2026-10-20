@@ -169,38 +169,68 @@ for pname,(X,y,kind,split_dates) in problems.items():
     if split_dates is not None: split_dates=split_dates.loc[valid].reset_index(drop=True)
     if len(X)<30: raise ValueError(f'{pname} has too few rows ({len(X)}).')
     if kind=='classification' and y.nunique()<2: raise ValueError(f'{pname} target has fewer than two classes.')
+
+    # Create separate training, validation, and test sets.
+    # Time-based tasks keep later dates out of training to reduce temporal leakage.
     if split_dates is not None:
-        unique_dates=sorted(pd.to_datetime(split_dates).dropna().unique())
-        cut=max(1,int(len(unique_dates)*.8)); test_start=unique_dates[cut] if cut < len(unique_dates) else unique_dates[-1]
-        train_mask=pd.to_datetime(split_dates)<test_start; test_mask=~train_mask
-        Xtr,Xte=X.loc[train_mask].reset_index(drop=True),X.loc[test_mask].reset_index(drop=True)
-        ytr,yte=y.loc[train_mask].reset_index(drop=True),y.loc[test_mask].reset_index(drop=True)
+        dates = pd.to_datetime(split_dates, errors='coerce')
+        unique_dates = np.array(sorted(dates.dropna().unique()))
+        if len(unique_dates) < 3:
+            raise ValueError(f'{pname} needs at least 3 distinct dates for train/validation/test splitting.')
+        train_end = max(1, int(len(unique_dates) * 0.6))
+        val_end = max(train_end + 1, int(len(unique_dates) * 0.8))
+        val_end = min(val_end, len(unique_dates) - 1)
+        train_dates = unique_dates[:train_end]
+        val_dates = unique_dates[train_end:val_end]
+        test_dates = unique_dates[val_end:]
+        train_mask = dates.isin(train_dates)
+        val_mask = dates.isin(val_dates)
+        test_mask = dates.isin(test_dates)
+        Xtr, ytr = X.loc[train_mask].reset_index(drop=True), y.loc[train_mask].reset_index(drop=True)
+        Xval, yval = X.loc[val_mask].reset_index(drop=True), y.loc[val_mask].reset_index(drop=True)
+        Xte, yte = X.loc[test_mask].reset_index(drop=True), y.loc[test_mask].reset_index(drop=True)
     else:
-        strat=y if kind=='classification' and y.value_counts().min()>=2 else None
-        Xtr,Xte,ytr,yte=train_test_split(X,y,test_size=.2,random_state=42,stratify=strat)
-    transformer,cats,nums=prep(Xtr)
+        strat = y if kind=='classification' and y.value_counts().min() >= 2 else None
+        Xtemp, Xte, ytemp, yte = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=strat
+        )
+        strat_temp = ytemp if kind=='classification' and ytemp.value_counts().min() >= 2 else None
+        Xtr, Xval, ytr, yval = train_test_split(
+            Xtemp, ytemp, test_size=0.25, random_state=42, stratify=strat_temp
+        )
+
+    if len(Xtr)==0 or len(Xval)==0 or len(Xte)==0:
+        raise ValueError(f'{pname} produced an empty train, validation, or test split.')
+
     if kind=='classification':
         algos={'Logistic Regression':LogisticRegression(max_iter=1200,class_weight='balanced'),'Decision Tree':DecisionTreeClassifier(max_depth=10,class_weight='balanced',random_state=42),'Random Forest':RandomForestClassifier(n_estimators=60,max_depth=10,class_weight='balanced_subsample',random_state=42,n_jobs=1)}
     else:
         algos={'Linear Regression':LinearRegression(),'Decision Tree Regressor':DecisionTreeRegressor(max_depth=10,random_state=42),'Random Forest Regressor':RandomForestRegressor(n_estimators=60,max_depth=10,random_state=42,n_jobs=1)}
+
     fitted=[]
     for aname,algo in algos.items():
+        # Give each candidate its own preprocessing transformer to avoid shared fitted state.
+        transformer, cats, nums = prep(Xtr)
         pipe=Pipeline([('preprocessor',transformer),('model',algo)])
-        pipe.fit(Xtr,ytr); pred=pipe.predict(Xte)
+        pipe.fit(Xtr,ytr)
+        pred_val=pipe.predict(Xval)
         row={'Problem':pname,'Algorithm':aname,'Rows':len(X),'Features':X.shape[1],'Selected':False,'Tuned':False}
         if kind=='classification':
-            row.update({'Accuracy':accuracy_score(yte,pred),'Precision':precision_score(yte,pred,zero_division=0),'Recall':recall_score(yte,pred,zero_division=0),'F1':f1_score(yte,pred,zero_division=0),'ROC_AUC':np.nan})
-            if hasattr(pipe,'predict_proba') and yte.nunique()==2:
-                try: row['ROC_AUC']=roc_auc_score(yte,pipe.predict_proba(Xte)[:,1])
+            row.update({'Accuracy':accuracy_score(yval,pred_val),'Precision':precision_score(yval,pred_val,zero_division=0),'Recall':recall_score(yval,pred_val,zero_division=0),'F1':f1_score(yval,pred_val,zero_division=0),'ROC_AUC':np.nan})
+            if hasattr(pipe,'predict_proba') and yval.nunique()==2:
+                try: row['ROC_AUC']=roc_auc_score(yval,pipe.predict_proba(Xval)[:,1])
                 except Exception: pass
             score=row['F1']
         else:
-            rmse=math.sqrt(mean_squared_error(yte,pred)); row.update({'MAE':mean_absolute_error(yte,pred),'RMSE':rmse,'R2':r2_score(yte,pred)})
+            rmse=math.sqrt(mean_squared_error(yval,pred_val)); row.update({'MAE':mean_absolute_error(yval,pred_val),'RMSE':rmse,'R2':r2_score(yval,pred_val)})
             score=-row['RMSE']
-        results.append(row); fitted.append((score,aname,pipe,row,Xte,yte,pred,Xtr,ytr))
+        results.append(row)
+        fitted.append((score,aname,pipe,row))
+
     fitted.sort(key=lambda z:z[0],reverse=True)
-    best_score,best_name,best_pipe,best_row,Xte,yte,pred,Xtr,ytr=fitted[0]
-    # modest tuning of the best algorithm, if enough rows; retain tuned version only if it scores at least as well
+    best_score,best_name,best_pipe,best_row=fitted[0]
+
+    # Tune the selected algorithm using training data only; choose it using validation performance.
     try:
         if kind=='classification' and best_name=='Random Forest':
             search=GridSearchCV(best_pipe,{'model__n_estimators':[40,60],'model__max_depth':[8,10]},cv=(TimeSeriesSplit(n_splits=2) if split_dates is not None else 3),scoring='f1',n_jobs=1)
@@ -210,31 +240,47 @@ for pname,(X,y,kind,split_dates) in problems.items():
             search=GridSearchCV(best_pipe,{'model__max_depth':[5,10,15],'model__min_samples_leaf':[1,3]},cv=(TimeSeriesSplit(n_splits=2) if split_dates is not None else 3),scoring='f1',n_jobs=1)
         elif kind=='regression' and best_name=='Decision Tree Regressor':
             search=GridSearchCV(best_pipe,{'model__max_depth':[5,10,15],'model__min_samples_leaf':[1,3]},cv=(TimeSeriesSplit(n_splits=2) if split_dates is not None else 3),scoring='neg_root_mean_squared_error',n_jobs=1)
-        else: search=None
+        else:
+            search=None
         if search:
-            search.fit(Xtr,ytr); tuned=search.best_estimator_; tp=tuned.predict(Xte)
-            if kind=='classification': tunedscore=f1_score(yte,tp,zero_division=0)
-            else: tunedscore=-math.sqrt(mean_squared_error(yte,tp))
-            if tunedscore>=best_score:
-                best_pipe=tuned; best_name += ' (tuned)'; best_score=tunedscore; pred=tp
+            search.fit(Xtr,ytr)
+            tuned=search.best_estimator_
+            tuned_val=tuned.predict(Xval)
+            if kind=='classification':
+                tuned_score=f1_score(yval,tuned_val,zero_division=0)
+            else:
+                tuned_score=-math.sqrt(mean_squared_error(yval,tuned_val))
+            if tuned_score >= best_score:
+                best_pipe=tuned
+                best_name += ' (tuned)'
+                best_score=tuned_score
                 best_row['Tuned']=True
     except Exception as e:
         print(f'Tuning note for {pname}: {e}')
-    # recompute best model's held-out metrics
+
+    # Refit the selected pipeline on training + validation data, then evaluate once on the untouched test set.
+    Xfinal=pd.concat([Xtr,Xval],ignore_index=True)
+    yfinal=pd.concat([ytr,yval],ignore_index=True)
+    best_pipe.fit(Xfinal,yfinal)
+    pred_test=best_pipe.predict(Xte)
+
     if kind=='classification':
-        metric={'Accuracy':accuracy_score(yte,pred),'Precision':precision_score(yte,pred,zero_division=0),'Recall':recall_score(yte,pred,zero_division=0),'F1':f1_score(yte,pred,zero_division=0)}
-        if hasattr(best_pipe,'predict_proba'):
+        metric={'Accuracy':accuracy_score(yte,pred_test),'Precision':precision_score(yte,pred_test,zero_division=0),'Recall':recall_score(yte,pred_test,zero_division=0),'F1':f1_score(yte,pred_test,zero_division=0)}
+        if hasattr(best_pipe,'predict_proba') and yte.nunique()==2:
             try: metric['ROC_AUC']=roc_auc_score(yte,best_pipe.predict_proba(Xte)[:,1])
             except Exception: metric['ROC_AUC']=np.nan
-        fig,ax=plt.subplots(figsize=(5,4)); ConfusionMatrixDisplay(confusion_matrix(yte,pred)).plot(ax=ax,colorbar=False); ax.set_title(pname+': Confusion Matrix'); fig.tight_layout(); fig.savefig(ROOT/f'Models/{pname.lower().replace(" ","_")}_confusion_matrix.png',dpi=150); plt.close(fig)
+        fig,ax=plt.subplots(figsize=(5,4)); ConfusionMatrixDisplay(confusion_matrix(yte,pred_test)).plot(ax=ax,colorbar=False); ax.set_title(pname+': Test Confusion Matrix'); fig.tight_layout(); fig.savefig(ROOT/f'Models/{pname.lower().replace(" ","_")}_confusion_matrix.png',dpi=150); plt.close(fig)
     else:
-        metric={'MAE':mean_absolute_error(yte,pred),'RMSE':math.sqrt(mean_squared_error(yte,pred)),'R2':r2_score(yte,pred)}
-    best_row['Algorithm']=best_name; best_row['Selected']=True
-    best_row.update(metric)
+        metric={'MAE':mean_absolute_error(yte,pred_test),'RMSE':math.sqrt(mean_squared_error(yte,pred_test)),'R2':r2_score(yte,pred_test)}
+
+    best_row['Algorithm']=best_name
+    best_row['Selected']=True
+    # Keep candidate comparison metrics (validation) and record final test metrics separately.
+    best_row.update({f'Test_{key}': value for key,value in metric.items()})
     bundles[pname]={'model':best_pipe,'features':list(X.columns),'defaults':{c:(float(pd.to_numeric(X[c],errors='coerce').median()) if pd.api.types.is_numeric_dtype(X[c]) else (str(X[c].mode(dropna=True).iloc[0]) if not X[c].mode(dropna=True).empty else 'Unknown')) for c in X.columns},'types':{c:('numeric' if pd.api.types.is_numeric_dtype(X[c]) else 'categorical') for c in X.columns},'kind':kind,'metrics':metric,'algorithm':best_name}
-    # permutation importance on held-out raw columns
+
+    # Estimate feature importance on held-out test rows; this is descriptive, not used for model selection.
     try:
-        
         if len(Xte)>1000:
             sample_idx=Xte.sample(n=1000,random_state=42).index
             Ximp=Xte.loc[sample_idx]; yimp=yte.loc[sample_idx]
@@ -242,8 +288,9 @@ for pname,(X,y,kind,split_dates) in problems.items():
             Ximp=Xte; yimp=yte
         pi=permutation_importance(best_pipe,Ximp,yimp,n_repeats=2,random_state=42,n_jobs=1,scoring='f1' if kind=='classification' else 'neg_root_mean_squared_error')
         for c,v in zip(X.columns,pi.importances_mean): all_importances.append({'Problem':pname,'Feature':c,'Importance':float(v)})
-    except Exception: pass
-    print(f'Completed: {pname} | best={best_name} | metrics={metric}')
+    except Exception as e:
+        print(f'Feature-importance note for {pname}: {e}')
+    print(f'Completed: {pname} | best={best_name} | test metrics={metric}')
 
 # Save artefacts
 joblib.dump(bundles,ROOT/'Models/Best_Model.pkl')
